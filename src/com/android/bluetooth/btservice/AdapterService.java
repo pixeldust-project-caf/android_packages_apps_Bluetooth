@@ -1634,7 +1634,6 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
-            service.disable();
             return service.factoryReset();
 
         }
