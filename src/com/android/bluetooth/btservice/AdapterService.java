@@ -1090,6 +1090,18 @@ public class AdapterService extends Service {
 
         // TODO(b/140404592): Either implement these custom methods, or remove them from IBluetooth.
         @Override
+        public void setBondingInitiatedLocally(BluetoothDevice device, boolean localInitiated) {}
+        @Override
+        public boolean isTwsPlusDevice(BluetoothDevice device) { return false; }
+        @Override
+        public String getTwsPlusPeerAddress(BluetoothDevice device) { return null; }
+        @Override
+        public void updateQuietModeStatus(boolean quietMode) {}
+        @Override
+        public int setSocketOpt(int type, int port, int optionName, byte [] optionVal, int optionLen) { return -1; }
+        @Override
+        public int getSocketOpt(int type, int port, int optionName, byte [] optionVal) { return -1; }
+        @Override
         public int getDeviceType(BluetoothDevice device) { return TYPE_BREDR; }
 
         public void cleanup() {
@@ -1507,17 +1519,6 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setBondingInitiatedLocally(BluetoothDevice device, boolean localInitiated) {
-            // don't check caller, may be called from system UI
-            AdapterService service = getService();
-            if (service == null) {
-                return;
-            }
-            service.setBondingInitiatedLocally(device,localInitiated);
-            return;
-        }
-
-        @Override
         public long getSupportedProfiles() {
             AdapterService service = getService();
             if (service == null) {
@@ -1886,14 +1887,6 @@ public class AdapterService extends Service {
             return true;
         }
 
-        public boolean isTwsPlusDevice(BluetoothDevice device) {
-            return false;
-        }
-
-        public String getTwsPlusPeerAddress(BluetoothDevice device) {
-            return null;
-        }
-
         @Override
         public int getBatteryLevel(BluetoothDevice device) {
             AdapterService service = getService();
@@ -2199,16 +2192,6 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void updateQuietModeStatus(boolean quietMode) {
-            AdapterService service = getService();
-            if (service == null) {
-                return;
-            }
-            service.updateQuietModeStatus(quietMode);
-        }
-
-
-        @Override
         public void onBrEdrDown() {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "onBrEdrDown")) {
@@ -2405,17 +2388,6 @@ public class AdapterService extends Service {
             return BluetoothDevice.BOND_NONE;
         }
         return deviceProp.getBondState();
-    }
-
-    void setBondingInitiatedLocally(BluetoothDevice device, boolean localInitiated) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null) {
-            return;
-        }
-        Log.w(TAG," localInitiated " + localInitiated);
-        deviceProp.setBondingInitiatedLocally(localInitiated);
-        return;
     }
 
     int getConnectionState(BluetoothDevice device) {
@@ -2825,12 +2797,6 @@ public class AdapterService extends Service {
     public int getTotalNumOfTrackableAdvertisements() {
         enforceBluetoothPermission(this);
         return mAdapterProperties.getTotalNumOfTrackableAdvertisements();
-    }
-
-    void updateQuietModeStatus(boolean quietMode) {
-        debugLog("updateQuietModeStatus()-updateQuietModeStatus called with quiet mode status:"
-                   + quietMode);
-        mQuietmode = quietMode;
     }
 
     private static int convertScanModeToHal(int mode) {
